@@ -31,7 +31,7 @@ gulp.task('concat-css', function () {
 });
 //concat-libs
 gulp.task('concat-js', function() {
-  return gulp.src(['./node_modules/jquery/jquery.min.js',
+  return gulp.src(['./node_modules/jquery/dist/jquery.min.js',
   	'./node_modules/bootstrap/dist/js/bootstrap.min.js',
   	'./node_modules/angular/angular.min.js'])
     .pipe(concat('libs.js'))
