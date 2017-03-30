@@ -1,108 +1,82 @@
 var gulp = require('gulp'),
 browserSync = require('browser-sync').create(),
-modRewrite  = require('connect-modrewrite'),
 sass = require('gulp-sass'),
-uglyfly = require('gulp-uglyfly'),
-htmlmin = require('gulp-htmlmin'),
-jade = require('gulp-jade'),
+uglify = require('gulp-uglify'),
 autoprefixer = require('gulp-autoprefixer'),
-concat = require('gulp-concat'),
-concatCss = require('gulp-concat-css');
+concatCss = require('gulp-concat-css'),
+concat = require('gulp-concat');
 
 //serve
 gulp.task('serve', function () {
 	browserSync.init({
-		server: {
-			baseDir: "./build",
-			middleware: [
-			modRewrite([
-				'^[^\\.]*$ /index.html [L]'
-				])
-			]
-		}
-	});
+        server: {
+            baseDir: "./build"
+        }
+    });
 });
-//concat-css
-gulp.task('concat-css', function () {
-	return gulp.src(['./node_modules/normalize.css/normalize.css',
-		'./node_modules/bootstrap/dist/css/bootstrap.min.css'])
-	.pipe(concatCss("bundle.css"))
-	.pipe(gulp.dest('./src/sass/bundle'));
-});
-//concat-libs
-gulp.task('concat-js', function() {
-	return gulp.src(['./node_modules/jquery/dist/jquery.min.js',
-		'./node_modules/bootstrap/dist/js/bootstrap.min.js',
-		'./node_modules/angular/angular.min.js'])
-	.pipe(concat('libs.js'))
-	.pipe(gulp.dest('./build/lib'));
-});
-//concat-ctrls
+
+// concat-app
 gulp.task('concat-app', function() {
-	return gulp.src('./src/**/*.js')
+	return gulp.src('src/**/*.js')
 	.pipe(concat('app.js'))
-	.pipe(uglyfly())
+	.pipe(uglify())
 	.pipe(gulp.dest('./build/js'))
 	.pipe(browserSync.stream());
 });
-//html
+
+// concat-css-libs
+gulp.task('concat-css', function () {
+  return gulp.src('node_modules/normalize.css/normalize.css')
+    .pipe(concatCss("bundle.css"))
+    .pipe(gulp.dest('build/css'))
+	.pipe(browserSync.stream());
+});
+
+// html
 gulp.task('html', function () {
-	gulp.src('./src/app/**/*.html')
-	.pipe(htmlmin({collapseWhitespace: true}))
+	gulp.src('src/app/templates/**/*.html')
 	.pipe(gulp.dest('./build/templates'))
 	.pipe(browserSync.stream());
 });
-//main-html
+
+// main-html
 gulp.task('main', function(){
-	gulp.src('./src/index.html')
-	.pipe(htmlmin({collapseWhitespace: true}))
+	gulp.src('src/index.html')
 	.pipe(gulp.dest('./build'))
 	.pipe(browserSync.stream());
 });
-//jade
-gulp.task('jade', function(){
-	gulp.src('./src/app/**/*.jade')
-	.pipe(jade())
-	.pipe(gulp.dest('./src/app'))
-});
-gulp.task('jade-index', function(){
-	gulp.src('./src/index.jade')
-	.pipe(jade())
-	.pipe(gulp.dest('./build'))
-});
-//sass
+
+// sass
 gulp.task('sass', function () {
-	gulp.src('./src/sass/main.scss')
+	gulp.src('src/scss/main.scss')
 	.pipe(sass({outputStyle: 'compressed' }).on('error', sass.logError))
 	.pipe(autoprefixer('last 5 versions'))
 	.pipe(gulp.dest('./build/css'))
 	.pipe(browserSync.stream());
 });
-//images
+
+// images
 gulp.task('img', function () {
-	gulp.src('./src/sass/img/*.*')
+	gulp.src('./src/scss/img/*.*')
 	.pipe(gulp.dest('./build/css/img'))
 	.pipe(browserSync.stream());
 });
+
 //watch
 gulp.task('watch', function () {
-	gulp.watch('./src/sass/img',['img']).on('change', browserSync.reload);
-	gulp.watch('./src/index.html',['main']).on('change', browserSync.reload);
-	gulp.watch('./src/index.jade',['jade-index']).on('change', browserSync.reload);
-	gulp.watch('./src/app/**/**/*.js',['concat-app']).on('change', browserSync.reload);
-	gulp.watch('./src/sass/**/*.scss',['sass']).on('change', browserSync.reload);
-	gulp.watch('./src/**/**/*.html', ['html']).on('change', browserSync.reload);
+	gulp.watch('src/app/**/**/*.js',['concat-app']).on('change', browserSync.reload);
+	gulp.watch('src/scss/img',['img']).on('change', browserSync.reload);
+	gulp.watch('src/app/templates/**/*.html', ['html']).on('change', browserSync.reload);
+	gulp.watch('src/index.html',['main']).on('change', browserSync.reload);
+	gulp.watch('src/scss/**/*.scss',['sass']).on('change', browserSync.reload);
 });
 
 gulp.task('default',
 	['watch',
 	'serve',
-	'sass',
-	'html',
 	'main',
-	'jade',
-	'jade-index',
-	'concat-css',
-	'concat-js',
+	'html',
+	'sass',
 	'concat-app',
+	'concat-css',
 	'img']);
